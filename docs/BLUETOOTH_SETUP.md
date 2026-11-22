@@ -1,28 +1,33 @@
-# Bluetooth discovery and troubleshooting
+# Bluetooth device discovery and troubleshooting
 
-## Why the setup wizard can find a device without a MAC address
+## New first-time setup (v1.2.1)
 
-This integration asks **Home Assistant's Bluetooth integration** for cached service advertisements from nearby **connectable** adapters/proxies (`bluetooth.async_discovered_service_info(..., connectable=True)`). At the start of the wizard (or on refresh), it asks Home Assistant for a five-second active scan window on scanners that support it, then filters the results by a name containing `H1167` and displays the H1167's advertised device name **and its own Bluetooth address** in a dropdown. Selecting the box saves that discovered address in Home Assistant's config entry.
+Choose **Settings → Devices & services → Add integration → TechCave Govee H1167 BLE**. The wizard requests a five-second active scan using Home Assistant's Bluetooth manager, then shows **all BLE advertisements** currently cached by Home Assistant. The list is not filtered by the H1167 name.
 
-There is **no hard-coded MAC address**, no developer-specific identifier, and no custom BLE scanner running outside Home Assistant. The scan uses Home Assistant's existing managed scanners, not an independent scanner; active scan windows only affect scanners configured in AUTO mode. If no advertisement is available yet, wait and try **Scan again**. Nearby devices with different advertised names cannot be safely identified as H1167 without verification.
+Each row contains the advertised name (or **Unnamed BLE device**), Bluetooth address, H1167-name match status, **Connectable** or **Scan only (cannot control)**, and signal strength where available. Connectable devices appear first, and H1167/Govee names are prioritized within those groups.
 
-## Checklist if zero H1167 boxes appear
+A device marked **Scan only** is useful for locating the box, but cannot be selected until a connectable Bluetooth adapter or proxy can reach it. H1167 needs a GATT connection for power and mode control.
 
-1. Power the light show box and put it near a connectable HA Bluetooth adapter or ESPHome Bluetooth proxy.
-2. Verify **Settings → Devices & services → Bluetooth** is set up and the relevant proxy or adapter is connected.
-3. Wait for advertisements, then choose **Scan again / refresh device list**. Cancel and reopen setup if the advertisement cache has not updated.
-4. Close the Govee phone app so it is not holding the BLE connection.
-5. Look for an advertisement named like `Govee_H1167_XXXX` or `GVH1167...`; generic `Govee_*` devices intentionally do **not** appear because they might be unrelated models.
-6. If your device advertises a different name, choose **Enter Bluetooth address manually** and supply its address from Home Assistant's advertisement information or another BLE scanner.
-7. If you know the address but Home Assistant shows `Cannot reach Govee BLE ... with a connectable Bluetooth adapter`, improve adapter/proxy coverage. A scanner that only receives advertisements cannot make a GATT connection.
+Selecting a device with a name that doesn't identify it as H1167 requires **explicit model confirmation**. The list includes unrelated devices such as smart home sensors, phones, and headphones; **do not select them** unless you can verify the Bluetooth address belongs to your box. Already configured devices are excluded to avoid duplicate integrations.
+
+## If your box is not listed
+
+1. Ensure the H1167 is powered and within BLE range of a Home Assistant adapter or an ESPHome **connectable** Bluetooth proxy.
+2. Verify **Settings → Devices & services → Bluetooth** is configured and your adapter/proxy appears.
+3. Close the Govee mobile app if it is using the box, and choose **Scan again**.
+4. Try correlating an unknown or unnamed BLE address by switching the H1167 off/on and observing which advertisement disappears or returns.
+5. If the box shows as **Scan only**, improve connectable BLE coverage. Passive reception alone cannot send commands.
+6. If the box remains absent, choose **Enter Bluetooth address manually** and use its actual BLE address. Manual setup does not bypass BLE range requirements.
+
+Home Assistant enumerates BLE advertisements, **not Bluetooth Classic devices**. Scanners in AUTO mode can perform the requested active scan; depending on scanner configuration, some devices may not advertise during the short window.
 
 ## Manual setup
 
-Bluetooth MAC format: six two-digit hexadecimal octets separated by colons, e.g. `AA:BB:CC:DD:EE:FF`. Optional name can be any friendly label. The integration validates address syntax; it does not automatically verify physical model or probe a device on the manual form. Use only with a confirmed H1167 box.
+Use six hexadecimal octets separated by colons, e.g. `AA:BB:CC:DD:EE:FF`. The optional friendly name does not affect discovery. The form checks address syntax, not device identity.
 
-## Logs
+## Logging
 
-In Settings → System → Logs, search for `govee_light_ble` or enable debug logging:
+Home Assistant **Settings → System → Logs** can show `govee_light_ble` errors. To enable verbose logging:
 
 ```yaml
 logger:
@@ -30,8 +35,8 @@ logger:
     custom_components.govee_light_ble: debug
 ```
 
-Restart HA after changing logger configuration. Be careful when sharing logs: devices' Bluetooth addresses and related identifiers can appear in error messages.
+Restart after changing YAML logging. Redact Bluetooth addresses and other identifying data before sharing logs.
 
-## Bluetooth Proxy support
+## ESPHome Bluetooth Proxy
 
-The integration resolves the BLE device through Home Assistant's scanner manager, and Home Assistant chooses a connectable adapter/proxy. You do not need to enter the proxy's MAC address or IP address into this integration. A passive-only proxy cannot execute the GATT writes needed for H1167 power/mode control.
+Home Assistant's Bluetooth manager chooses a connectable proxy/adapter for the BLE address. The address entered is **the H1167's**, not the proxy's MAC or IP address. An advertisement visible only on a passive scanner is not sufficient for GATT commands.

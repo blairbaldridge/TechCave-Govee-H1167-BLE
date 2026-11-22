@@ -2,13 +2,13 @@
 
 An **unofficial, local-only Home Assistant integration** for the **Govee H1167 Light Show Box**. Control power and choose from 12 recorded Lightshow modes and 10 recorded Carnival modes via Bluetooth Low Energy, including a connectable ESPHome Bluetooth proxy. No cloud service, Govee account, or separate controller host is required.
 
-> **Status:** v1.2.0 release candidate. Originally validated on one H1167 device. Community Bluetooth/hardware validation is still needed. Not affiliated with or endorsed by Govee.
+> **Status:** v1.2.1 release candidate. Originally validated on one H1167 device. Community Bluetooth/hardware validation is still needed. Not affiliated with or endorsed by Govee.
 
 ## Features
 
 - Light entity for on/off power.
 - Select entity for **22 captured modes** (`Lightshow 1`–`12`, `Carnival 1`–`10`).
-- **Choose a discovered H1167 in the initial setup wizard**; no MAC address to hunt down if the device advertises its model.
+- **Browse all nearby BLE devices detected by Home Assistant** during initial setup, including unnamed and scan-only advertisements; view MAC addresses, connection capability and signal strength when available.
 - Manual Bluetooth MAC entry if discovery cannot identify the device.
 - Uses Home Assistant's built-in Bluetooth scanning and connectable adapters/proxies.
 - Preserves prior `govee_light_ble` config entries and MAC-based entity unique IDs when upgrading from v1.1.0.
@@ -23,7 +23,7 @@ An **unofficial, local-only Home Assistant integration** for the **Govee H1167 L
 
 ## Installation with HACS / Marketplace
 
-1. Create/download the release from `https://github.com/blairbaldridge/TechCave-Govee-H1167-BLE` (repository owner must first replace this placeholder).
+1. Create/download the release from `https://github.com/blairbaldridge/TechCave-Govee-H1167-BLE`.
 2. In Home Assistant, open **HACS** (or **Marketplace** on versions that support it).
 3. Use the menu for **Custom repositories** / **Add repository** and add the URL above, of type **Integration**. The repository does not need to be in the default catalog.
 4. Find **TechCave Govee H1167 BLE** and select **Download / Install**.
@@ -33,12 +33,12 @@ An **unofficial, local-only Home Assistant integration** for the **Govee H1167 L
 ### First-time setup: find the Bluetooth device automatically
 
 1. Plug in and power on your H1167 box and put it in Bluetooth range of your HA adapter/proxy.
-2. Start the **TechCave Govee H1167 BLE** integration setup. The wizard requests a brief managed Bluetooth scan and then shows a dropdown of **connectable H1167 devices it has seen**. Each entry shows its advertised name and Bluetooth address.
-3. Choose your H1167 box and submit. Home Assistant stores its own discovered address in the config entry; **the integration does not contain any preprogrammed MAC address**.
+2. Start the **TechCave Govee H1167 BLE** integration setup. The wizard requests a brief managed scan and lists **all BLE devices Home Assistant currently sees**, including unrelated and unnamed devices. Each item shows its name, address, whether it is connectable or scan-only, and optional signal strength. **Select only your actual H1167.**
+3. Choose your H1167 and submit. If its advertised name does not include `H1167`, explicitly confirm that you have identified the correct box. Home Assistant stores its Bluetooth address; **the integration does not contain any preprogrammed MAC address**. A scan-only listing cannot be installed until a connectable adapter or proxy can reach it.
 4. If the list is empty, choose **Scan again / refresh device list** after allowing time for advertisements. You may need to close the Govee phone app, move the proxy closer, or confirm that Bluetooth is enabled in HA.
 5. If scanning still does not show it, select **Enter Bluetooth address manually** and enter your own `AA:BB:CC:DD:EE:FF` address. Name is optional.
 
-Home Assistant may also present an automatically discovered H1167 under *Discovered integrations*. Select **Configure** and confirm it. The wizard only recognizes advertisements containing the `H1167` model string; if your device uses a different name, use manual entry and report its exact advertised naming pattern so detection can be improved safely.
+Home Assistant may also present an automatically discovered H1167 under *Discovered integrations*. Select **Configure** and confirm it. Automatic Home Assistant discovery still uses the `H1167` name match, but the manual Add Integration wizard lists all cached BLE devices. Nonmatching names require explicit confirmation; this does **not** mean those devices are supported.
 
 **Finding the address if manual setup is required:** Home Assistant's Bluetooth integration/device diagnostics can display nearby advertisements and addresses on supported versions. Alternatively, check with a BLE scanner application or Bluetooth scanner on another computer. Do not use a Wi-Fi MAC, the MAC of a proxy, or a different Govee device. The address must be discoverable through a **connectable** HA scanner for commands to work. See [Bluetooth troubleshooting](docs/BLUETOOTH_SETUP.md).
 
@@ -86,7 +86,7 @@ Back up `/config/custom_components/govee_light_ble/` and make a full Home Assist
 
 ## Support and reporting issues
 
-Open an issue at [Issues](https://github.com/blairbaldridge/TechCave-Govee-H1167-BLE/issues) after replacing the placeholder owner. Include the Home Assistant version, integration version, proxy type, visible advertised name, and a sanitized log. **Redact Bluetooth MAC addresses and other identifying details** unless you intentionally choose to share them.
+Open an issue at [Issues](https://github.com/blairbaldridge/TechCave-Govee-H1167-BLE/issues) . Include the Home Assistant version, integration version, proxy type, visible advertised name, and a sanitized log. **Redact Bluetooth MAC addresses and other identifying details** unless you intentionally choose to share them.
 
 [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [Acknowledgements](ATTRIBUTION.md) · [License](LICENSE)
 

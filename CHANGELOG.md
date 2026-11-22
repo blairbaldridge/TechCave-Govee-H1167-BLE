@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.1 — test release (2026-11-22)
+
+- Initial setup now lists **all BLE devices seen by Home Assistant**, including unnamed and passive-only advertisements, not only names containing `H1167`.
+- Show device addresses and connection capability; show signal strength when available. Put likely Govee/H1167 names near the top.
+- Prevent selection of scan-only devices, since H1167 requires connectable Bluetooth.
+- Require explicit user confirmation before configuring a device whose advertised name does not identify an H1167.
+- Keep existing H1167 automatic discovery filter, MAC-entry fallback, BLE packet commands and integration domain unchanged.
+- Add `strings.json`, update translations, documentation, tests and manifest version.
+
 ## 1.2.0 — release candidate (2026-11-22)
 
 - Remove the hard-coded Bluetooth address and developer device name from the setup form.

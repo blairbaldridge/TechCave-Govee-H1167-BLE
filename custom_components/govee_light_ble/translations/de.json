@@ -3,17 +3,40 @@
     "step": {
       "user": {
         "title": "Govee H1167 finden",
-        "description": "Home Assistant erkennt derzeit {count} konfigurierbare H1167-Geräte. Gerät wählen, Liste aktualisieren oder Adresse manuell eingeben.",
-        "data": {"address": "Gerät / Einrichtungsmethode"}
+        "description": "Home Assistant sieht {count} BLE-Geräte: {connectable_count} verbindungsfähige und {scan_only_count} nur per Scan sichtbare. Dies umfasst alle bekannten BLE-Geräte, nicht nur H1167. H1167 auswählen, neu scannen oder MAC-Adresse eingeben.",
+        "data": {
+          "address": "Bluetooth-Gerät / Einrichtungsmethode"
+        }
       },
       "manual": {
         "title": "Bluetooth-Adresse eingeben",
         "description": "Wenn das Gerät nicht gefunden wird, die Bluetooth-Adresse manuell eingeben. Es ist keine Adresse voreingestellt.",
-        "data": {"address": "Bluetooth-MAC-Adresse", "name": "Name (optional)"}
+        "data": {
+          "address": "Bluetooth-MAC-Adresse",
+          "name": "Name (optional)"
+        }
       },
-      "bluetooth_confirm": {"title": "H1167 bestätigen", "description": "{name} ({address}) zu Home Assistant hinzufügen?"}
+      "bluetooth_confirm": {
+        "title": "H1167 bestätigen",
+        "description": "{name} ({address}) zu Home Assistant hinzufügen?"
+      },
+      "confirm_device": {
+        "title": "H1167-Gerät bestätigen",
+        "description": "Dieses Gerät meldet sich als {name} ({address}), ist aber nicht als H1167 erkennbar. Nur fortfahren, wenn es wirklich dein Govee H1167 ist.",
+        "data": {
+          "confirm_h1167": "Ich bestätige, dass dies mein Govee H1167 ist"
+        }
+      }
     },
-    "error": {"invalid_address": "Bitte eine gültige Bluetooth-MAC-Adresse eingeben.", "device_not_found": "Das Gerät ist nicht mehr sichtbar."},
-    "abort": {"already_configured": "Das Gerät ist bereits eingerichtet.", "not_h1167": "Das Bluetooth-Gerät wurde nicht als H1167 erkannt."}
+    "error": {
+      "invalid_address": "Bitte eine gültige Bluetooth-MAC-Adresse eingeben.",
+      "device_not_found": "Das Gerät ist nicht mehr sichtbar.",
+      "not_connectable": "Dieses Gerät ist nur über einen passiven Scanner sichtbar. In Reichweite eines verbindungsfähigen Bluetooth-Adapters/Proxys bringen und erneut scannen.",
+      "confirmation_required": "Bestätige bitte dein H1167."
+    },
+    "abort": {
+      "already_configured": "Das Gerät ist bereits eingerichtet.",
+      "not_h1167": "Das Bluetooth-Gerät wurde nicht als H1167 erkannt."
+    }
   }
 }

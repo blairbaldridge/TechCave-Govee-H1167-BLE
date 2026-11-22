@@ -3,17 +3,40 @@
     "step": {
       "user": {
         "title": "Buscar tu Govee H1167",
-        "description": "Home Assistant detecta {count} dispositivos H1167 configurables. Selecciona uno, actualiza la lista o introduce la dirección manualmente.",
-        "data": {"address": "Dispositivo / método"}
+        "description": "Home Assistant detecta {count} dispositivos BLE: {connectable_count} conectables y {scan_only_count} solo de escaneo. Incluye todos los anuncios BLE, no solo H1167. Selecciona tu H1167, actualiza la lista o introduce su dirección.",
+        "data": {
+          "address": "Dispositivo Bluetooth / método"
+        }
       },
       "manual": {
         "title": "Introducir dirección Bluetooth",
         "description": "Si no aparece el dispositivo, escribe su dirección Bluetooth. No hay una dirección predeterminada.",
-        "data": {"address": "Dirección MAC Bluetooth", "name": "Nombre (opcional)"}
+        "data": {
+          "address": "Dirección MAC Bluetooth",
+          "name": "Nombre (opcional)"
+        }
       },
-      "bluetooth_confirm": {"title": "Confirmar H1167", "description": "¿Añadir {name} ({address}) a Home Assistant?"}
+      "bluetooth_confirm": {
+        "title": "Confirmar H1167",
+        "description": "¿Añadir {name} ({address}) a Home Assistant?"
+      },
+      "confirm_device": {
+        "title": "Confirmar dispositivo H1167",
+        "description": "El dispositivo anuncia {name} ({address}), pero no se identifica como H1167. Continúa solo si sabes que es tu Govee H1167.",
+        "data": {
+          "confirm_h1167": "Confirmo que este es mi Govee H1167"
+        }
+      }
     },
-    "error": {"invalid_address": "Introduce una dirección MAC válida.", "device_not_found": "El dispositivo ya no está disponible."},
-    "abort": {"already_configured": "El dispositivo ya está configurado.", "not_h1167": "El dispositivo no se identifica como H1167."}
+    "error": {
+      "invalid_address": "Introduce una dirección MAC válida.",
+      "device_not_found": "El dispositivo ya no está disponible.",
+      "not_connectable": "Solo se detectó mediante un receptor pasivo. Acércalo a un adaptador o proxy Bluetooth conectable y vuelve a escanear.",
+      "confirmation_required": "Confirma que es tu H1167."
+    },
+    "abort": {
+      "already_configured": "El dispositivo ya está configurado.",
+      "not_h1167": "El dispositivo no se identifica como H1167."
+    }
   }
 }

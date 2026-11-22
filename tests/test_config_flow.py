@@ -20,9 +20,11 @@ def load_flow():
         return None
 
     class FakeInfo:
-        def __init__(self, address, name):
+        def __init__(self, address, name, connectable=True, rssi=None):
             self.address = address
             self.name = name
+            self.connectable = connectable
+            self.rssi = rssi
 
     class FakeFlow:
         def __init_subclass__(cls, **kwargs):
@@ -48,7 +50,7 @@ def load_flow():
     vol = mod('voluptuous', Required=lambda x, **kw:x, Optional=lambda x, **kw:x, In=lambda x:x, Schema=lambda x:x)
     bluetooth = mod('homeassistant.components.bluetooth',
         BluetoothServiceInfoBleak=FakeInfo,
-        async_discovered_service_info=lambda hass, connectable=True: ads,
+        async_discovered_service_info=lambda hass, connectable=True: [item for item in ads if item.connectable] if connectable else list(ads),
         async_request_active_scan=fake_active_scan)
     mods = {
         'voluptuous': vol,
@@ -67,6 +69,7 @@ def load_flow():
         with patch.dict(sys.modules, {'govee_light_ble.discovery': discovery}):
             spec = importlib.util.spec_from_file_location('govee_light_ble.config_flow', ROOT/'config_flow.py')
             module = importlib.util.module_from_spec(spec)
+            sys.modules['govee_light_ble.config_flow'] = module
             spec.loader.exec_module(module)
     return module.GoveeConfigFlow, FakeInfo, ads
 
@@ -80,20 +83,57 @@ class TestSetupFlow(unittest.TestCase):
         obj.entries = []
         return obj, info, ads
 
-    def test_discovered_dropdown_filters_other_devices_and_configured(self):
+    def test_all_ble_devices_listed_but_configured_devices_excluded(self):
         obj, info, ads = self.new_flow()
-        ads.extend([info('AA:00:00:00:00:11', 'Govee_H1167_LIVING'),
-                    info('AA:00:00:00:00:22', 'Govee_H617C'),
-                    info('AA:00:00:00:00:33', 'GVH1167_BEDROOM')])
-        obj.entries = [types.SimpleNamespace(unique_id='AA:00:00:00:00:33', data={})]
-        found = obj._discovered_devices()
-        self.assertEqual(list(found), ['AA:00:00:00:00:11'])
+        ads.extend([
+            info('AA:00:00:00:00:11', 'Govee_H1167_LIVING', rssi=-46),
+            info('AA:00:00:00:00:22', 'Govee_OTHER'),
+            info('AA:00:00:00:00:33', None),
+            info('AA:00:00:00:00:44', 'Passive Sensor', connectable=False),
+            info('AA:00:00:00:00:55', 'GVH1167_ALREADY_CONFIGURED'),
+        ])
+        obj.entries = [types.SimpleNamespace(unique_id='AA:00:00:00:00:55', data={})]
+        devices = obj._discovered_devices()
+        self.assertEqual(list(devices), [
+            'AA:00:00:00:00:11', 'AA:00:00:00:00:22',
+            'AA:00:00:00:00:33', 'AA:00:00:00:00:44',
+        ])
         first = asyncio.run(obj.async_step_user())
-        self.assertEqual(first['step_id'], 'user')
-        self.assertIn('AA:00:00:00:00:11', first['data_schema']['address'])
+        options = first['data_schema']['address']
+        self.assertIn('-46 dBm', options['AA:00:00:00:00:11'])
+        self.assertIn('Unnamed BLE device', options['AA:00:00:00:00:33'])
+        self.assertIn('Scan only (cannot control)', options['AA:00:00:00:00:44'])
+        self.assertEqual(first['description_placeholders'], {
+            'count': '4', 'connectable_count': '3', 'scan_only_count': '1',
+        })
         made = asyncio.run(obj.async_step_user({'address': 'AA:00:00:00:00:11'}))
         self.assertEqual(made['data']['model'], 'H1167')
-        self.assertEqual(made['data']['address'], 'AA:00:00:00:00:11')
+
+    def test_unknown_name_requires_explicit_confirmation(self):
+        obj, info, ads = self.new_flow()
+        ads.append(info('AA:00:00:00:00:22', 'Govee_OTHER'))
+        page = asyncio.run(obj.async_step_user({'address': 'AA:00:00:00:00:22'}))
+        self.assertEqual(page['step_id'], 'confirm_device')
+        rejected = asyncio.run(obj.async_step_confirm_device({'confirm_h1167': False}))
+        self.assertEqual(rejected['errors'], {
+            'confirm_h1167': 'confirmation_required',
+        })
+        made = asyncio.run(obj.async_step_confirm_device({'confirm_h1167': True}))
+        self.assertEqual(made['data']['address'], 'AA:00:00:00:00:22')
+
+    def test_unnamed_device_can_be_confirmed(self):
+        obj, info, ads = self.new_flow()
+        ads.append(info('AA:00:00:00:00:33', None))
+        page = asyncio.run(obj.async_step_user({'address': 'AA:00:00:00:00:33'}))
+        self.assertEqual(page['step_id'], 'confirm_device')
+        made = asyncio.run(obj.async_step_confirm_device({'confirm_h1167': True}))
+        self.assertTrue(made['title'].startswith('Govee H1167'))
+
+    def test_scan_only_device_is_visible_but_not_selectable(self):
+        obj, info, ads = self.new_flow()
+        ads.append(info('AA:00:00:00:00:44', 'Govee_H1167_TEST', connectable=False))
+        page = asyncio.run(obj.async_step_user({'address': 'AA:00:00:00:00:44'}))
+        self.assertEqual(page['errors'], {'address': 'not_connectable'})
 
     def test_no_scan_manual_entry_validates_address(self):
         obj, _, _ = self.new_flow()
