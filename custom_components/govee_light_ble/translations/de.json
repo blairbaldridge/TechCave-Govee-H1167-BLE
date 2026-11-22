@@ -1,0 +1,19 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Govee H1167 finden",
+        "description": "Home Assistant erkennt derzeit {count} konfigurierbare H1167-Geräte. Gerät wählen, Liste aktualisieren oder Adresse manuell eingeben.",
+        "data": {"address": "Gerät / Einrichtungsmethode"}
+      },
+      "manual": {
+        "title": "Bluetooth-Adresse eingeben",
+        "description": "Wenn das Gerät nicht gefunden wird, die Bluetooth-Adresse manuell eingeben. Es ist keine Adresse voreingestellt.",
+        "data": {"address": "Bluetooth-MAC-Adresse", "name": "Name (optional)"}
+      },
+      "bluetooth_confirm": {"title": "H1167 bestätigen", "description": "{name} ({address}) zu Home Assistant hinzufügen?"}
+    },
+    "error": {"invalid_address": "Bitte eine gültige Bluetooth-MAC-Adresse eingeben.", "device_not_found": "Das Gerät ist nicht mehr sichtbar."},
+    "abort": {"already_configured": "Das Gerät ist bereits eingerichtet.", "not_h1167": "Das Bluetooth-Gerät wurde nicht als H1167 erkannt."}
+  }
+}

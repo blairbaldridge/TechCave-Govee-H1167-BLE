@@ -1,0 +1,26 @@
+{
+  "domain": "govee_light_ble",
+  "name": "TechCave Govee H1167 BLE",
+  "version": "1.2.0",
+  "config_flow": true,
+  "dependencies": [
+    "bluetooth",
+    "bluetooth_adapters"
+  ],
+  "bluetooth": [
+    {
+      "local_name": "Govee_H1167*",
+      "connectable": true
+    },
+    {
+      "local_name": "GVH1167*",
+      "connectable": true
+    }
+  ],
+  "iot_class": "local_polling",
+  "documentation": "https://github.com/blairbaldridge/TechCave-Govee-H1167-BLE#readme",
+  "issue_tracker": "https://github.com/blairbaldridge/TechCave-Govee-H1167-BLE/issues",
+  "codeowners": [
+    "@blairbaldridge"
+  ]
+}

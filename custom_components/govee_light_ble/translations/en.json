@@ -1,0 +1,25 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Find your Govee H1167",
+        "description": "Home Assistant currently sees {count} unconfigured, connectable H1167 device(s). Select your box. If it is not listed, scan again or choose manual setup. Bluetooth must be enabled in Home Assistant.",
+        "data": {"address": "Detected H1167 / setup method"}
+      },
+      "manual": {
+        "title": "Enter H1167 Bluetooth address",
+        "description": "Only use this if your box is not discovered. Find its address using Home Assistant Bluetooth advertisements or another BLE scanner. No address is pre-filled.",
+        "data": {"address": "Bluetooth MAC address (AA:BB:CC:DD:EE:FF)", "name": "Friendly name (optional)"}
+      },
+      "bluetooth_confirm": {"title": "Confirm discovered H1167", "description": "Add {name} ({address}) to Home Assistant?"}
+    },
+    "error": {
+      "invalid_address": "Use a valid Bluetooth MAC address, such as AA:BB:CC:DD:EE:FF.",
+      "device_not_found": "The device is no longer visible. Refresh or try manual setup."
+    },
+    "abort": {
+      "already_configured": "This device is already configured.",
+      "not_h1167": "This Bluetooth device is not identified as an H1167."
+    }
+  }
+}

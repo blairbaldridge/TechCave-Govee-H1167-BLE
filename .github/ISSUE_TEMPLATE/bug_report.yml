@@ -1,0 +1,31 @@
+name: Bug report
+description: Report an H1167 device or Bluetooth issue
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Problem
+      description: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Integration version
+      placeholder: 1.2.0
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+  - type: dropdown
+    id: bluetooth
+    attributes:
+      label: Bluetooth connection
+      options: [ESPHome Bluetooth Proxy, Local Bluetooth adapter, Other / unknown]
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs (redact Bluetooth addresses and personal details)
+      render: text
