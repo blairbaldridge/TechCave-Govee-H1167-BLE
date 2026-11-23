@@ -23,10 +23,9 @@ H1167_MODE_FRAMES: dict[str, bytes] = {
     "Lightshow 10": bytes.fromhex("33 60 02 01 08 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 14"),
     "Lightshow 11": bytes.fromhex("33 60 02 01 09 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 15"),
     "Lightshow 12": bytes.fromhex("33 60 02 01 0A 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 16"),
-    # Carnival 1 is enabled for hardware verification on main.
-    # Carnival 2–10 remain disabled pending protocol validation.
-    # Preserve their captured frames below for later testing.
-    "Carnival 1": bytes.fromhex("33 60 02 02 20 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 3F"),
+    # Carnival 1–10 are temporarily disabled on main pending additional
+    # protocol validation. Preserve captured frames below for later testing.
+    # "Carnival 1": bytes.fromhex("33 60 02 02 20 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 3F"),
     # "Carnival 2": bytes.fromhex("33 60 02 02 21 00 01 4C 00 00 00 00 00 00 00 00 00 00 00 3F"),
     # "Carnival 3": bytes.fromhex("33 60 02 02 22 00 01 4C 00 00 00 00 00 00 00 00 00 00 00 3C"),
     # "Carnival 4": bytes.fromhex("33 60 02 02 23 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 3C"),

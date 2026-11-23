@@ -1,4 +1,4 @@
-"""Ensure main branch exposes 12 Lightshow modes and Carnival 1 only."""
+"""Ensure stable branch exposes only verified H1167 Lightshow modes."""
 from __future__ import annotations
 
 import importlib.util
@@ -25,20 +25,18 @@ class TestFrames(unittest.TestCase):
         sys.modules["govee_light_ble"] = pkg
         utils = load_module("govee_light_ble.api_utils", COMPONENT / "api_utils.py")
         modes = load_module("govee_light_ble.h1167_modes", COMPONENT / "h1167_modes.py")
-        self.assertEqual(len(modes.H1167_MODE_FRAMES), 13)
+        self.assertEqual(len(modes.H1167_MODE_FRAMES), 12)
         self.assertEqual(
             modes.H1167_MODE_OPTIONS,
-            [f"Lightshow {i}" for i in range(1, 13)] + ["Carnival 1"],
+            [f"Lightshow {i}" for i in range(1, 13)],
         )
-        self.assertEqual(
-            [name for name in modes.H1167_MODE_FRAMES if name.startswith("Carnival ")],
-            ["Carnival 1"],
+        self.assertFalse(
+            any(name.startswith("Carnival ") for name in modes.H1167_MODE_FRAMES)
         )
-        self.assertEqual(modes.H1167_MODE_FRAMES["Carnival 1"][4], 0x20)
         self.assertTrue(all(utils.valid_frame(f) for f in modes.H1167_MODE_FRAMES.values()))
         self.assertEqual(modes.H1167_MODE_FRAMES["Lightshow 8"][4], 0x0B)
         source = (COMPONENT / "h1167_modes.py").read_text(encoding="utf-8")
-        for num in range(2, 11):
+        for num in range(1, 11):
             self.assertIn(f'# "Carnival {num}": bytes.fromhex(', source)
 
 

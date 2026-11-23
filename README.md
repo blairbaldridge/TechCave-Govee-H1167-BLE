@@ -1,13 +1,13 @@
 # TechCave Govee H1167 BLE
 
-An **unofficial, local-only Home Assistant integration** for the **Govee H1167 Light Show Box**. Control power and choose from 12 supported Lightshow modes and experimental Carnival 1 via Bluetooth Low Energy, including a connectable ESPHome Bluetooth proxy. No cloud service, Govee account, or separate controller host is required.
+An **unofficial, local-only Home Assistant integration** for the **Govee H1167 Light Show Box**. Control power and choose from 12 supported Lightshow modes via Bluetooth Low Energy, including a connectable ESPHome Bluetooth proxy. No cloud service, Govee account, or separate controller host is required.
 
 > **Status:** v1.2.2 on the stable `main` branch. Originally validated on one H1167 device. Community Bluetooth/hardware validation is still needed. Not affiliated with or endorsed by Govee.
 
 ## Features
 
 - Light entity for on/off power.
-- Select entity for **13 active modes** (`Lightshow 1`–`12`, plus experimental `Carnival 1`). Carnival 2–10 remain disabled on `main` while their BLE commands are investigated; all Carnival modes remain available on `test`.
+- Select entity for **12 active Lightshow modes** (`Lightshow 1`–`12`). Carnival 1–10 are temporarily disabled on `main` while their BLE commands are investigated; they remain available on `test`.
 - **Browse all nearby BLE devices detected by Home Assistant** during initial setup, including unnamed and scan-only advertisements; view MAC addresses, connection capability and signal strength when available.
 - Manual Bluetooth MAC entry if discovery cannot identify the device.
 - Uses Home Assistant's built-in Bluetooth scanning and connectable adapters/proxies.
@@ -45,7 +45,7 @@ Home Assistant may also present an automatically discovered H1167 under *Discove
 ## Entities
 
 - `light.<your_device_name>` — on/off. Your original entity ID stays intact when you update an existing installation.
-- `select.<your_device_name>_show_mode` — last HA-selected Lightshow/Carnival 1 option. Use the actual entity ID shown in **Settings → Devices & services → Entities**.
+- `select.<your_device_name>_show_mode` — last HA-selected Lightshow option. Use the actual entity ID shown in **Settings → Devices & services → Entities**.
 
 ### Example automation
 
@@ -75,7 +75,7 @@ entities:
 
 - **Mode state is optimistic.** The select reports the last mode chosen through Home Assistant; it does not track changes from the Govee app or hardware after the fact. It restores the saved UI state after restart, not the actual device mode.
 - **Selecting a mode does not automatically turn the box on.** Turn on its light entity first as needed.
-- The 12 Lightshow commands and experimental Carnival 1 are enabled on `main`; Carnival 2–10 remain disabled pending additional testing. Only commands captured on the developer's test box have been tested. **Do not assume other Govee models work.** The underlying legacy code may contain LED strip support, but that is not publicly claimed or discovered by this release.
+- The 12 Lightshow commands are enabled on `main`; Carnival commands are disabled pending additional testing. Only commands captured on the developer's test box have been tested. **Do not assume other Govee models work.** The underlying legacy code may contain LED strip support, but that is not publicly claimed or discovered by this release.
 - Bluetooth apps may compete for the box's single BLE connection. Close the Govee app while testing Home Assistant.
 - Device must be within range of a **connectable** Bluetooth adapter/proxy; a passive-only scanner will not work.
 - Manual entry does not bypass range: unavailable devices will be retried by Home Assistant until connectable.
