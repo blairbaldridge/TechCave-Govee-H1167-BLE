@@ -1,4 +1,4 @@
-"""Ensure every original mode frame survives the public release unchanged."""
+"""Ensure stable branch exposes only verified H1167 Lightshow modes."""
 from __future__ import annotations
 
 import importlib.util
@@ -25,10 +25,19 @@ class TestFrames(unittest.TestCase):
         sys.modules["govee_light_ble"] = pkg
         utils = load_module("govee_light_ble.api_utils", COMPONENT / "api_utils.py")
         modes = load_module("govee_light_ble.h1167_modes", COMPONENT / "h1167_modes.py")
-        self.assertEqual(len(modes.H1167_MODE_FRAMES), 22)
+        self.assertEqual(len(modes.H1167_MODE_FRAMES), 12)
+        self.assertEqual(
+            modes.H1167_MODE_OPTIONS,
+            [f"Lightshow {i}" for i in range(1, 13)],
+        )
+        self.assertFalse(
+            any(name.startswith("Carnival ") for name in modes.H1167_MODE_FRAMES)
+        )
         self.assertTrue(all(utils.valid_frame(f) for f in modes.H1167_MODE_FRAMES.values()))
         self.assertEqual(modes.H1167_MODE_FRAMES["Lightshow 8"][4], 0x0B)
-        self.assertEqual(modes.H1167_MODE_FRAMES["Carnival 10"][4], 0x29)
+        source = (COMPONENT / "h1167_modes.py").read_text(encoding="utf-8")
+        for num in range(1, 11):
+            self.assertIn(f'# "Carnival {num}": bytes.fromhex(', source)
 
 
 if __name__ == "__main__":

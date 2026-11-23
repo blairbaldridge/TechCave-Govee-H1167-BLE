@@ -44,6 +44,7 @@ class GoveeCoordinator(DataUpdateCoordinator[GoveeApiData]):
             self.device_address,
             self._async_push_data,
             segmented=self.device_segmented,
+            write_only=self.power_only,
         )
         super().__init__(
             hass,

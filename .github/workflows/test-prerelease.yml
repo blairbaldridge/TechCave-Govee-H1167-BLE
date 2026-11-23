@@ -1,0 +1,71 @@
+name: Publish HACS Test Prerelease
+
+on:
+  push:
+    branches:
+      - test
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hacs-test-prerelease
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Validate and publish beta
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout test branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Prepare versioned release snapshot
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          version = f"1.2.2b{os.environ['GITHUB_RUN_NUMBER']}"
+          path = Path("custom_components/govee_light_ble/manifest.json")
+          data = json.loads(path.read_text(encoding="utf-8"))
+          data["version"] = version
+          path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
+              env.write(f"BETA_VERSION={version}\n")
+          print(f"Prepared beta {version}")
+          PY
+
+      - name: Check syntax, manifest and release package
+        run: python scripts/validate_local.py
+
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Hassfest validation
+        uses: home-assistant/actions/hassfest@master
+
+      - name: Create tagged release commit and prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add custom_components/govee_light_ble/manifest.json
+          git commit -m "Build HACS test prerelease v${BETA_VERSION}"
+          git tag "v${BETA_VERSION}"
+          git push origin "refs/tags/v${BETA_VERSION}"
+          gh release create "v${BETA_VERSION}" \
+            --prerelease \
+            --verify-tag \
+            --title "Govee H1167 BLE v${BETA_VERSION} (test)" \
+            --notes "Automated HACS test prerelease from the \`test\` branch. Install using HACS > Redownload > Show beta versions > v${BETA_VERSION}. This is NOT a stable release. Validation: unit tests, local manifest checks, and Hassfest."

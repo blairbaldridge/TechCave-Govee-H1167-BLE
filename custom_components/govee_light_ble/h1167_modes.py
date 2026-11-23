@@ -23,16 +23,18 @@ H1167_MODE_FRAMES: dict[str, bytes] = {
     "Lightshow 10": bytes.fromhex("33 60 02 01 08 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 14"),
     "Lightshow 11": bytes.fromhex("33 60 02 01 09 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 15"),
     "Lightshow 12": bytes.fromhex("33 60 02 01 0A 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 16"),
-    "Carnival 1": bytes.fromhex("33 60 02 02 20 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 3F"),
-    "Carnival 2": bytes.fromhex("33 60 02 02 21 00 01 4C 00 00 00 00 00 00 00 00 00 00 00 3F"),
-    "Carnival 3": bytes.fromhex("33 60 02 02 22 00 01 4C 00 00 00 00 00 00 00 00 00 00 00 3C"),
-    "Carnival 4": bytes.fromhex("33 60 02 02 23 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 3C"),
-    "Carnival 5": bytes.fromhex("33 60 02 02 24 00 01 4C 00 00 00 00 00 00 00 00 00 00 00 3A"),
-    "Carnival 6": bytes.fromhex("33 60 02 02 25 00 01 4C 00 00 00 00 00 00 00 00 00 00 00 3B"),
-    "Carnival 7": bytes.fromhex("33 60 02 02 26 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 39"),
-    "Carnival 8": bytes.fromhex("33 60 02 02 27 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 38"),
-    "Carnival 9": bytes.fromhex("33 60 02 02 28 00 01 4C 00 00 00 00 00 00 00 00 00 00 00 36"),
-    "Carnival 10": bytes.fromhex("33 60 02 02 29 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 36"),
+    # Carnival 1–10 are temporarily disabled on main pending additional
+    # protocol validation. Preserve captured frames below for later testing.
+    # "Carnival 1": bytes.fromhex("33 60 02 02 20 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 3F"),
+    # "Carnival 2": bytes.fromhex("33 60 02 02 21 00 01 4C 00 00 00 00 00 00 00 00 00 00 00 3F"),
+    # "Carnival 3": bytes.fromhex("33 60 02 02 22 00 01 4C 00 00 00 00 00 00 00 00 00 00 00 3C"),
+    # "Carnival 4": bytes.fromhex("33 60 02 02 23 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 3C"),
+    # "Carnival 5": bytes.fromhex("33 60 02 02 24 00 01 4C 00 00 00 00 00 00 00 00 00 00 00 3A"),
+    # "Carnival 6": bytes.fromhex("33 60 02 02 25 00 01 4C 00 00 00 00 00 00 00 00 00 00 00 3B"),
+    # "Carnival 7": bytes.fromhex("33 60 02 02 26 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 39"),
+    # "Carnival 8": bytes.fromhex("33 60 02 02 27 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 38"),
+    # "Carnival 9": bytes.fromhex("33 60 02 02 28 00 01 4C 00 00 00 00 00 00 00 00 00 00 00 36"),
+    # "Carnival 10": bytes.fromhex("33 60 02 02 29 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 36"),
 }
 
 for _name, _frame in H1167_MODE_FRAMES.items():

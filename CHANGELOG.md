@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.2.2 — stable main branch (2026-11-22)
+
+- Promote the tested Bluetooth GATT recovery fixes from `test`: avoid unsupported H1167 notifications and periodic readback, reset stale GATT handles, and retry once after characteristic/discovery errors.
+- Temporarily disable **Carnival 1–10** on `main` pending further investigation. Original captured packets remain commented out in `h1167_modes.py`.
+- Expose only the **12 Lightshow modes** on `main`. The `test` branch still contains all 22 modes and their captured frames for further work.
+- Preserve power on/off control, entity unique IDs, config entries, and Bluetooth device selection.
+
+## 1.2.2 beta — BLE GATT recovery testing (2026-11-22)
+
+- Skip unreliable notification subscriptions on H1167 while retaining notification support for other Govee devices; H1167 power state remains optimistic.
+- Avoid periodic H1167 readback polls when notifications are not supported.
+- Reset cached characteristics on connection failures and retry once for known stale-GATT errors.
+- Preserve all 22 mode frames and existing entity IDs, and add offline regression tests.
+
 ## 1.2.1 — test release (2026-11-22)
 
 - Initial setup now lists **all BLE devices seen by Home Assistant**, including unnamed and passive-only advertisements, not only names containing `H1167`.
