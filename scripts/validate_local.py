@@ -18,7 +18,7 @@ def main() -> None:
         json.loads(file.read_text(encoding="utf-8"))
     manifest = json.loads((COMPONENT / "manifest.json").read_text())
     assert manifest["domain"] == "govee_light_ble"
-    assert manifest["version"] == "1.2.1"
+    assert re.fullmatch(r"\d+\.\d+\.\d+(?:b\d+)?", manifest["version"])
     assert manifest["config_flow"] is True
     assert len(manifest["bluetooth"]) == 2
     assert (COMPONENT / "brand" / "icon.png").is_file()

@@ -1,5 +1,7 @@
 # TechCave Govee H1167 BLE
 
+> **Testing branch:** This is the `test` branch. Work here is not merged into `main` until verified. For HACS installs, use [test prereleases](docs/TESTING_WITH_HACS.md), not a `/tree/test` URL. A GitHub Actions workflow creates a beta release from every new push to `test` after validation.
+
 An **unofficial, local-only Home Assistant integration** for the **Govee H1167 Light Show Box**. Control power and choose from 12 recorded Lightshow modes and 10 recorded Carnival modes via Bluetooth Low Energy, including a connectable ESPHome Bluetooth proxy. No cloud service, Govee account, or separate controller host is required.
 
 > **Status:** v1.2.1 release candidate. Originally validated on one H1167 device. Community Bluetooth/hardware validation is still needed. Not affiliated with or endorsed by Govee.
