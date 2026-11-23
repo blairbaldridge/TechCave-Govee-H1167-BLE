@@ -36,10 +36,13 @@ class GoveeAPI:
         update_callback: Callable[[], None],
         *,
         segmented: bool = False,
+        write_only: bool = False,
     ) -> None:
         self.hass = hass
         self.address = address.upper()
         self.segmented = segmented
+        # H1167 notification setup can invalidate BlueZ GATT object paths.
+        self.write_only = write_only
         self.state: bool | None = None
         self.brightness: int | None = None
         self.color: tuple[int, int, int] | None = None
@@ -64,6 +67,10 @@ class GoveeAPI:
         client = self._client
         if client is not None and client.is_connected:
             return client
+        # Discard GATT characteristics belonging to a disconnected session.
+        self._client = None
+        self._write_characteristic = None
+        self._notify_enabled = False
 
         # Advertisements from passive-only scanners cannot be used for GATT.
         device = bluetooth.async_ble_device_from_address(
@@ -104,34 +111,35 @@ class GoveeAPI:
                     f"Discovered GATT: {self._gatt_summary(client)}"
                 )
 
-            notify_char = client.services.get_characteristic(
-                READ_CHARACTERISTIC_UUID
-            )
             self._notify_enabled = False
-            if notify_char is not None and (
-                "notify" in notify_char.properties
-                or "indicate" in notify_char.properties
-            ):
-                try:
-                    await client.start_notify(
-                        notify_char, self._handle_notification
-                    )
-                    self._notify_enabled = True
-                except Exception as err:
-                    _LOGGER.warning(
-                        "Govee BLE %s cannot enable notifications (%s); "
-                        "continuing in write-only mode (power status will "
-                        "be optimistic)", self.address, err,
-                    )
-            else:
-                _LOGGER.warning(
-                    "Govee BLE %s: notification characteristic %s is "
-                    "missing or lacks notify/indicate. Continuing in "
-                    "write-only mode. Discovered GATT: %s",
-                    self.address,
-                    READ_CHARACTERISTIC_UUID,
-                    self._gatt_summary(client),
+            if not self.write_only:
+                notify_char = client.services.get_characteristic(
+                    READ_CHARACTERISTIC_UUID
                 )
+                if notify_char is not None and (
+                    "notify" in notify_char.properties
+                    or "indicate" in notify_char.properties
+                ):
+                    try:
+                        await client.start_notify(
+                            notify_char, self._handle_notification
+                        )
+                        self._notify_enabled = True
+                    except Exception as err:
+                        _LOGGER.warning(
+                            "Govee BLE %s cannot enable notifications (%s); "
+                            "continuing in write-only mode (power status will "
+                            "be optimistic)", self.address, err,
+                        )
+                else:
+                    _LOGGER.warning(
+                        "Govee BLE %s: notification characteristic %s is "
+                        "missing or lacks notify/indicate. Continuing in "
+                        "write-only mode. Discovered GATT: %s",
+                        self.address,
+                        READ_CHARACTERISTIC_UUID,
+                        self._gatt_summary(client),
+                    )
 
             self._write_characteristic = write_char
             self._write_with_response = write_with_response
@@ -190,27 +198,63 @@ class GoveeAPI:
     def _request(cmd: LedPacketCmd, payload: bytes = b"") -> bytes:
         return generate_frame(LedPacketHead.REQUEST, cmd, payload)
 
-    async def _send(self, packets: list[bytes], *, request_only: bool = False) -> None:
-        """Send one command batch without interleaving concurrent HA calls."""
-        async with self._lock:
-            client = await self._ensure_connected()
-            if request_only and not self._notify_enabled:
-                return
+    async def _reset_connection(self) -> None:
+        """Discard GATT paths and disconnect after a failed BLE operation."""
+        client, self._client = self._client, None
+        self._write_characteristic = None
+        self._notify_enabled = False
+        if client is not None:
             try:
-                for frame in packets:
-                    await client.write_gatt_char(
-                        self._write_characteristic, frame,
-                        response=self._write_with_response,
-                    )
+                await client.disconnect()
             except Exception:
-                self._client = None
-                self._write_characteristic = None
-                self._notify_enabled = False
+                _LOGGER.debug("Error closing failed BLE connection", exc_info=True)
+
+    @staticmethod
+    def _is_stale_gatt_error(err: Exception) -> bool:
+        """Only retry connection/GATT invalidation, not protocol errors."""
+        message = str(err).lower()
+        return any(
+            fragment in message
+            for fragment in (
+                "service discovery has not been performed",
+                "org.freedesktop.dbus.error.unknownobject",
+                "org.bluez.error.notconnected",
+                "not connected",
+                "device has been disconnected",
+                "connection abort",
+            )
+        )
+
+    async def _send(self, packets: list[bytes], *, request_only: bool = False) -> None:
+        """Send command batch, reconnecting once for stale BlueZ GATT state."""
+        # H1167 has no reliable notification readback. Avoid a BLE connection
+        # every 45 seconds for unobservable polls that can disrupt writes.
+        if request_only and self.write_only:
+            return
+        async with self._lock:
+            for attempt in range(2):
                 try:
-                    await client.disconnect()
-                except Exception:
-                    _LOGGER.debug("Error closing failed BLE connection", exc_info=True)
-                raise
+                    client = await self._ensure_connected()
+                    if request_only and not self._notify_enabled:
+                        return
+                    for frame in packets:
+                        await client.write_gatt_char(
+                            self._write_characteristic,
+                            frame,
+                            response=self._write_with_response,
+                        )
+                    return
+                except Exception as err:
+                    retry = attempt == 0 and self._is_stale_gatt_error(err)
+                    await self._reset_connection()
+                    if not retry:
+                        raise
+                    _LOGGER.warning(
+                        "Govee BLE %s lost GATT services (%s); "
+                        "reconnecting once before retrying command",
+                        self.address, err,
+                    )
+                    await asyncio.sleep(0.4)
 
     def _request_packets(self, *, power_only: bool) -> list[bytes]:
         packets = [self._request(LedPacketCmd.POWER)] * REPEAT_COUNT
@@ -281,8 +325,4 @@ class GoveeAPI:
     async def async_close(self) -> None:
         """Release the BLE connection when the HA integration unloads."""
         async with self._lock:
-            client, self._client = self._client, None
-            self._write_characteristic = None
-            self._notify_enabled = False
-            if client is not None and client.is_connected:
-                await client.disconnect()
+            await self._reset_connection()
