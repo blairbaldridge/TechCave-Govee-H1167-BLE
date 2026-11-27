@@ -1,0 +1,95 @@
+name: Publish Stable HACS Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hacs-stable-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Validate and publish stable release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout approved main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Validate and export stable version
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          manifest = json.loads(Path('custom_components/govee_light_ble/manifest.json').read_text(encoding='utf-8'))
+          version = manifest['version']
+          if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version):
+              raise ValueError(f'Stable releases need MAJOR.MINOR.PATCH (not beta): {version}')
+          major, minor, _ = version.split('.')
+          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as env:
+              env.write(f'STABLE_VERSION={version}\n')
+              env.write(f'STABLE_SERIES={major}.{minor}\n')
+          print(f'Validated stable version v{version}')
+          PY
+
+      - name: Check syntax, JSON and manifest
+        run: python scripts/validate_local.py
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Hassfest validation
+        uses: home-assistant/actions/hassfest@master
+
+      - name: Archive tested release and publish HACS version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="v${STABLE_VERSION}"
+          ARCHIVE="archive/v${STABLE_SERIES}"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          if git show-ref --verify --quiet "refs/tags/${TAG}"; then
+            existing=$(git rev-list -n 1 "${TAG}")
+            if [ "${existing}" != "${GITHUB_SHA}" ]; then
+              echo "::error::${TAG} already points at ${existing}; bump manifest version before changing main."
+              exit 1
+            fi
+          else
+            git tag "${TAG}" "${GITHUB_SHA}"
+            git push origin "refs/tags/${TAG}"
+          fi
+
+          # Preserve each minor release line; never force-push an archive branch.
+          if git ls-remote --exit-code --heads origin "refs/heads/${ARCHIVE}" >/dev/null; then
+            git fetch origin "refs/heads/${ARCHIVE}:refs/remotes/origin/${ARCHIVE}"
+            if ! git merge-base --is-ancestor "refs/remotes/origin/${ARCHIVE}" "${GITHUB_SHA}"; then
+              echo "::error::${ARCHIVE} is not an ancestor of this approved release; refusing to overwrite."
+              exit 1
+            fi
+          fi
+          git push origin "${GITHUB_SHA}:refs/heads/${ARCHIVE}"
+
+          if ! gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release create "${TAG}" --verify-tag --latest \
+              --title "TechCave Govee H1167 BLE ${TAG} (stable)" \
+              --notes "Stable HACS release ${TAG} from protected main. Archive branch: ${ARCHIVE}. Existing entity IDs are preserved. For rollback in HACS, select this tag in Redownload and restart Home Assistant. Carnival 1-10 are disabled in initial v1.0.0; consult changelog for subsequent releases."
+          fi
+          echo "Published ${TAG}; archived ${ARCHIVE}"

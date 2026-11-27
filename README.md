@@ -2,7 +2,7 @@
 
 An **unofficial, local-only Home Assistant integration** for the **Govee H1167 Light Show Box**. Control power and choose from 12 supported Lightshow modes via Bluetooth Low Energy, including a connectable ESPHome Bluetooth proxy. No cloud service, Govee account, or separate controller host is required.
 
-> **Status:** v1.2.2 on the stable `main` branch. Originally validated on one H1167 device. Community Bluetooth/hardware validation is still needed. Not affiliated with or endorsed by Govee.
+> **Status:** v1.0.0 on the stable `main` branch. Originally validated on one H1167 device. Community Bluetooth/hardware validation is still needed. Not affiliated with or endorsed by Govee.
 
 ## Features
 
@@ -13,6 +13,19 @@ An **unofficial, local-only Home Assistant integration** for the **Govee H1167 L
 - Uses Home Assistant's built-in Bluetooth scanning and connectable adapters/proxies.
 - Preserves prior `govee_light_ble` config entries and MAC-based entity unique IDs when upgrading from v1.1.0.
 - Restores the *last Home Assistant-selected* mode after restart (does not resend the command automatically).
+
+## Stable versions and older downloads
+
+The official stable series starts at **v1.0.0**. An earlier development manifest used `1.2.2`, and its historical `v1.2.2bN` beta prereleases are still available; they are **not** newer approved stable releases.
+
+- **`main`**: current approved stable code.
+- **`archive/v1.0`**: retained v1.0 release-line branch, intended to remain unchanged when v1.1 is approved.
+- **`v1.0.0`**: permanent stable tag and GitHub Release for HACS rollback.
+- **`test`**: experimental features and automatic beta prereleases. This branch is never promoted without owner authorization.
+
+To install an older release in HACS, open this integration, choose **Redownload**, and select the desired stable release tag (e.g. `v1.0.0`). Restart Home Assistant afterward. HACS typically displays the latest five releases and the default branch; if an old release falls off that dropdown, its GitHub tag and archive branch remain available for manual retrieval. The source branch is not guaranteed to appear among HACS's normal version choices.
+
+When a future v1.1.0 is explicitly approved, bump the manifest to `1.1.0` in the authorized `main` update. The [stable release workflow](.github/workflows/stable-release.yml) validates the build, creates tag `v1.1.0`, publishes a stable GitHub Release, and preserves `archive/v1.1`; `archive/v1.0` remains intact. Full instructions: [versioning and rollback](docs/VERSIONING.md).
 
 ## Requirements
 

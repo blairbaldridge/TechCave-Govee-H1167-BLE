@@ -10,7 +10,7 @@
 - [ ] Test fresh install: discovered H1167 selection, no-devices/manual choice, invalid MAC handling, duplicate prevention, power on/off and 12 enabled Lightshow modes; Carnival 1–10 remain disabled on main.
 - [ ] Test an ESPHome Bluetooth proxy and a local connectable adapter if possible. Device-level tests must use real hardware.
 - [ ] Capture sanitized screenshots and add them to the README when available.
-- [ ] Create a GitHub **Release** with tag `v1.2.2`, release notes from CHANGELOG, and make sure `manifest.json` says `1.2.2`.
+- [ ] For each owner-approved update to `main`, bump `manifest.json` to a new stable version (starting `1.0.0`, next `1.1.0`), then verify the Publish Stable HACS Release workflow succeeded and created the matching `vX.Y.Z` GitHub tag/release and `archive/vX.Y` branch. Never reuse a stable tag.
 - [ ] After independent tests and successful validation, optionally request inclusion in the default HACS/Marketplace catalog.
 
 Current publication requirements: https://contributors.home-assistant.io/marketplace/guides/integrations/ and https://hacs.dev/docs/publish/integration/

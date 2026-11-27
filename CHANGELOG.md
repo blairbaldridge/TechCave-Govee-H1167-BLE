@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0 — first numbered stable HACS release (2026-11-26)
+
+- Establish a new **stable** version sequence starting at v1.0.0, with permanent tag/release and `archive/v1.0` branch for rollback.
+- Preserve the same working main branch Bluetooth/GATT behavior, device and entity IDs, and 12 Lightshow mode commands; Carnival 1–10 remain disabled.
+- Add release automation for subsequent explicitly approved stable updates (for example v1.1.0), without modifying `test`.
+- Historical development versions (`1.2.2` manifest and `v1.2.2bN` beta releases) remain in GitHub; they are not part of the new stable sequence.
+
 ## 1.2.2 — stable main branch (2026-11-22)
 
 - Promote the tested Bluetooth GATT recovery fixes from `test`: avoid unsupported H1167 notifications and periodic readback, reset stale GATT handles, and retry once after characteristic/discovery errors.
