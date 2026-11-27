@@ -26,6 +26,10 @@ _LOGGER = logging.getLogger(__name__)
 REPEAT_COUNT = 3
 
 
+class _MissingWriteCharacteristicError(ConnectionError):
+    """GATT discovery completed without the required command characteristic."""
+
+
 class GoveeAPI:
     """Send commands over BLE and track responses from the device."""
 
@@ -93,7 +97,7 @@ class GoveeAPI:
                 WRITE_CHARACTERISTIC_UUID
             )
             if write_char is None:
-                raise ConnectionError(
+                raise _MissingWriteCharacteristicError(
                     f"Govee BLE {self.address}: required WRITE characteristic "
                     f"{WRITE_CHARACTERISTIC_UUID} not found. "
                     f"Discovered GATT: {self._gatt_summary(client)}"
@@ -232,9 +236,16 @@ class GoveeAPI:
         if request_only and self.write_only:
             return
         async with self._lock:
+            retried = False
             for attempt in range(2):
                 try:
                     client = await self._ensure_connected()
+                    if retried:
+                        _LOGGER.info(
+                            "Govee BLE %s: service rediscovery succeeded; "
+                            "WRITE characteristic %s available on retry",
+                            self.address, WRITE_CHARACTERISTIC_UUID,
+                        )
                     if request_only and not self._notify_enabled:
                         return
                     for frame in packets:
@@ -243,17 +254,44 @@ class GoveeAPI:
                             frame,
                             response=self._write_with_response,
                         )
+                    if retried:
+                        _LOGGER.info(
+                            "Govee BLE %s: command completed after one "
+                            "automatic reconnect", self.address,
+                        )
                     return
                 except Exception as err:
-                    retry = attempt == 0 and self._is_stale_gatt_error(err)
+                    # A missing write characteristic is a recoverable H1167
+                    # discovery failure, not evidence of malformed mode bytes.
+                    # Keep this retry specific to H1167/write-only devices.
+                    missing_write = self.write_only and isinstance(
+                        err, _MissingWriteCharacteristicError
+                    )
+                    retry = attempt == 0 and (
+                        missing_write or self._is_stale_gatt_error(err)
+                    )
                     await self._reset_connection()
                     if not retry:
+                        if retried:
+                            _LOGGER.error(
+                                "Govee BLE %s: command failed after one "
+                                "automatic reconnect (%s)", self.address, err,
+                            )
                         raise
-                    _LOGGER.warning(
-                        "Govee BLE %s lost GATT services (%s); "
-                        "reconnecting once before retrying command",
-                        self.address, err,
-                    )
+                    retried = True
+                    if missing_write:
+                        _LOGGER.warning(
+                            "Govee BLE %s: initial GATT discovery is missing "
+                            "required WRITE characteristic %s (%s); "
+                            "reconnecting and rediscovering once",
+                            self.address, WRITE_CHARACTERISTIC_UUID, err,
+                        )
+                    else:
+                        _LOGGER.warning(
+                            "Govee BLE %s lost GATT services (%s); "
+                            "reconnecting once before retrying command",
+                            self.address, err,
+                        )
                     await asyncio.sleep(0.4)
 
     def _request_packets(self, *, power_only: bool) -> list[bytes]:

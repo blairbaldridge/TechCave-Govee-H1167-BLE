@@ -1,5 +1,12 @@
 # Changelog
 
+## Test branch — automatic GATT rediscovery (2026-11-26)
+
+- When the H1167 connects but the required WRITE GATT characteristic is missing, disconnect and retry connection/service discovery **once** before failing the command. Other devices retain their existing policy.
+- Add targeted logs for initial missing characteristic, retry, successful rediscovery and command completion, or final failure after retry.
+- Retain previous stale-GATT recovery behavior, all original BLE packets, entity identifiers and 22 Govee app mode labels.
+- Add offline regression tests for transient recovery, persistent missing characteristic and avoiding retries on non-H1167 devices. Stable `main` and `v1.0.0` remain unchanged.
+
 ## Test branch — Govee app mode names (2026-11-26)
 
 - Rename all 12 Lightshow and 10 Carnival select options to the user-confirmed names shown in the Govee app, preserving their exact BLE command frames and original ordering.

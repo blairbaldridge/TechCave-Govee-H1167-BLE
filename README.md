@@ -96,6 +96,7 @@ entities:
 ## Important limitations
 
 - **Renamed modes:** Old saved dropdown selections are mapped to their new app names on restart; automations, scripts, and dashboards using a literal old option (such as `Lightshow 8`) should be updated to the new name (such as `Hopping`). Entity IDs are unchanged.
+- **Transient H1167 GATT recovery:** If service discovery omits the required write characteristic, the integration automatically disconnects and rediscovers services once, logging both the recovery attempt and outcome. A persistent failure still raises an error, and the logs alone cannot prove another controller was connected.
 - **Mode state is optimistic.** The select reports the last mode chosen through Home Assistant; it does not track changes from the Govee app or hardware after the fact. It restores the saved UI state after restart, not the actual device mode.
 - **Selecting a mode does not automatically turn the box on.** Turn on its light entity first as needed.
 - Only the H1167 commands captured on the developer's test box are verified. **Do not assume other Govee models work.** The underlying legacy code may contain LED strip support, but that is not publicly claimed or discovered by this release.

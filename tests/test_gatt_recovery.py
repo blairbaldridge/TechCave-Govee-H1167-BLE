@@ -60,8 +60,19 @@ class NotifyChar:
 
 
 class Services:
+    def __init__(self, *, missing_write=False):
+        self.missing_write = missing_write
+
+    def __iter__(self):
+        # The integration enumerates characteristics for diagnostics when
+        # service discovery omits a required characteristic.
+        characteristics = [NotifyChar()]
+        if not self.missing_write:
+            characteristics.append(Char())
+        return iter([types.SimpleNamespace(characteristics=characteristics)])
+
     def get_characteristic(self, uuid):
-        if uuid.endswith("2b11"):
+        if uuid.endswith("2b11") and not self.missing_write:
             return Char()
         if uuid.endswith("2b10"):
             return NotifyChar()
@@ -69,8 +80,8 @@ class Services:
 
 
 class Client:
-    def __init__(self, fail=None):
-        self.services = Services()
+    def __init__(self, fail=None, *, missing_write=False):
+        self.services = Services(missing_write=missing_write)
         self.is_connected = True
         self.fail = fail
         self.writes = []
@@ -140,6 +151,46 @@ class TestGATTRecovery(unittest.IsolatedAsyncioTestCase):
         with patch.object(self.module.asyncio, "sleep", return_value=None):
             await self.api.set_h1167_mode(self.frame)
         self.assertEqual(len(self.calls), 2)
+
+    async def test_missing_write_characteristic_recovers_on_second_discovery(self):
+        self.clients = [Client(missing_write=True), Client()]
+        with self.assertLogs("govee_light_ble.api", level="INFO") as captured:
+            with patch.object(self.module.asyncio, "sleep", return_value=None) as delay:
+                await self.api.set_h1167_mode(self.frame)
+
+        self.assertEqual(len(self.calls), 2)
+        delay.assert_awaited_once_with(0.4)
+        self.assertEqual(self.clients[0].disconnects, 1)
+        self.assertEqual(self.clients[0].writes, [])
+        self.assertEqual(self.clients[1].writes, [(self.frame, False)])
+        self.assertEqual(self.clients[1].notifications, 0)
+        logs = "\n".join(captured.output)
+        self.assertIn("initial GATT discovery is missing", logs)
+        self.assertIn("service rediscovery succeeded", logs)
+        self.assertIn("command completed after one automatic reconnect", logs)
+
+    async def test_missing_write_characteristic_fails_after_one_retry(self):
+        self.clients = [Client(missing_write=True), Client(missing_write=True)]
+        with self.assertLogs("govee_light_ble.api", level="WARNING") as captured:
+            with patch.object(self.module.asyncio, "sleep", return_value=None):
+                with self.assertRaisesRegex(
+                    ConnectionError, "required WRITE characteristic"
+                ):
+                    await self.api.set_h1167_mode(self.frame)
+
+        self.assertEqual(len(self.calls), 2)
+        self.assertEqual([c.disconnects for c in self.clients], [1, 1])
+        self.assertEqual([c.writes for c in self.clients], [[], []])
+        self.assertIn("command failed after one automatic reconnect", "\n".join(captured.output))
+
+    async def test_other_devices_do_not_retry_missing_write_characteristic(self):
+        # Retry policy is deliberately limited to H1167/write-only devices.
+        self.api.write_only = False
+        self.clients = [Client(missing_write=True)]
+        with self.assertRaisesRegex(ConnectionError, "required WRITE characteristic"):
+            await self.api.set_h1167_mode(self.frame)
+        self.assertEqual(len(self.calls), 1)
+        self.assertEqual(self.clients[0].disconnects, 1)
 
     async def test_unrelated_error_not_retried(self):
         self.clients = [Client(fail=RuntimeError("unexpected failure"))]
