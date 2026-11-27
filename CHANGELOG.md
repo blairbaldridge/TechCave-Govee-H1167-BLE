@@ -1,5 +1,12 @@
 # Changelog
 
+## Test branch — Govee app mode names (2026-11-26)
+
+- Rename all 12 Lightshow and 10 Carnival select options to the user-confirmed names shown in the Govee app, preserving their exact BLE command frames and original ordering.
+- Restore legacy numbered dropdown selections to their equivalent new names when Home Assistant restarts; no BLE command is sent during restoration.
+- Update YAML automations and scripts referencing old option strings to use the new labels; existing entity identifiers remain unchanged.
+- Keep this change on `test` pending hardware validation; `main` remains unchanged with Carnival modes disabled.
+
 ## 1.2.2 beta — BLE GATT recovery testing (2026-11-22)
 
 - Skip unreliable notification subscriptions on H1167 while retaining notification support for other Govee devices; H1167 power state remains optimistic.

@@ -2,19 +2,39 @@
 
 > **Testing branch:** This is the `test` branch. Work here is not merged into `main` until verified. For HACS installs, use [test prereleases](docs/TESTING_WITH_HACS.md), not a `/tree/test` URL. A GitHub Actions workflow creates a beta release from every new push to `test` after validation.
 
-An **unofficial, local-only Home Assistant integration** for the **Govee H1167 Light Show Box**. Control power and choose from 12 recorded Lightshow modes and 10 recorded Carnival modes via Bluetooth Low Energy, including a connectable ESPHome Bluetooth proxy. No cloud service, Govee account, or separate controller host is required.
+An **unofficial, local-only Home Assistant integration** for the **Govee H1167 Light Show Box**. Control power and choose from 12 named Lightshow modes and 10 named Carnival modes via Bluetooth Low Energy, including a connectable ESPHome Bluetooth proxy. No cloud service, Govee account, or separate controller host is required.
 
 > **Status:** v1.2.1 release candidate. Originally validated on one H1167 device. Community Bluetooth/hardware validation is still needed. Not affiliated with or endorsed by Govee.
 
 ## Features
 
 - Light entity for on/off power.
-- Select entity for **22 captured modes** (`Lightshow 1`–`12`, `Carnival 1`–`10`).
+- Select entity for **22 captured modes** using the actual in-app names, including `Rhythm`, `Hopping`, `Brilliant`, and `Shimmer`.
 - **Browse all nearby BLE devices detected by Home Assistant** during initial setup, including unnamed and scan-only advertisements; view MAC addresses, connection capability and signal strength when available.
 - Manual Bluetooth MAC entry if discovery cannot identify the device.
 - Uses Home Assistant's built-in Bluetooth scanning and connectable adapters/proxies.
 - Preserves prior `govee_light_ble` config entries and MAC-based entity unique IDs when upgrading from v1.1.0.
 - Restores the *last Home Assistant-selected* mode after restart (does not resend the command automatically).
+
+
+### H1167 mode names used in the Govee app
+
+The test branch uses these names in the Show Mode dropdown. The 20-byte BLE command packets are unchanged.
+
+| Previous mode | Govee app name | Previous mode | Govee app name |
+| --- | --- | --- | --- |
+| Lightshow 1 | Rhythm | Carnival 1 | Brilliant |
+| Lightshow 2 | Sprouting | Carnival 2 | Pulsate |
+| Lightshow 3 | Shiny | Carnival 3 | Dazzle |
+| Lightshow 4 | Beat | Carnival 4 | Fascination |
+| Lightshow 5 | Waves | Carnival 5 | Aspiring |
+| Lightshow 6 | Spectrum | Carnival 6 | Cadence |
+| Lightshow 7 | Rolling | Carnival 7 | Revel |
+| Lightshow 8 | Hopping | Carnival 8 | Fluctuate |
+| Lightshow 9 | Starlight | Carnival 9 | Funny |
+| Lightshow 10 | Piano Keys | Carnival 10 | Shimmer |
+| Lightshow 11 | Jumping | — | — |
+| Lightshow 12 | Luminous | — | — |
 
 ## Requirements
 
@@ -60,7 +80,7 @@ sequence:
     target:
       entity_id: select.REPLACE_WITH_YOUR_SHOW_MODE_SELECT
     data:
-      option: "Lightshow 8"
+      option: "Hopping"
 ```
 
 ### Example dashboard (built-in Entities card)
@@ -75,6 +95,7 @@ entities:
 
 ## Important limitations
 
+- **Renamed modes:** Old saved dropdown selections are mapped to their new app names on restart; automations, scripts, and dashboards using a literal old option (such as `Lightshow 8`) should be updated to the new name (such as `Hopping`). Entity IDs are unchanged.
 - **Mode state is optimistic.** The select reports the last mode chosen through Home Assistant; it does not track changes from the Govee app or hardware after the fact. It restores the saved UI state after restart, not the actual device mode.
 - **Selecting a mode does not automatically turn the box on.** Turn on its light entity first as needed.
 - Only the H1167 commands captured on the developer's test box are verified. **Do not assume other Govee models work.** The underlying legacy code may contain LED strip support, but that is not publicly claimed or discovered by this release.

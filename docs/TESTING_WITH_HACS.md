@@ -31,8 +31,9 @@ The version inside the published tag's `custom_components/govee_light_ble/manife
 4. Open the integration in **HACS**, use **Download** (or **Redownload** if previously downloaded).
 5. Enable **Show beta versions**, and choose the corresponding `v1.2.2bN` release. Do **not** choose `main` or the default branch.
 6. Download, restart Home Assistant, then use **Settings → Devices & services → Add integration → TechCave Govee H1167 BLE**.
-7. Verify Bluetooth discovery, manual entry, power on/off, all 22 H1167 modes, connection recovery, and adapter/proxy behavior on Jarvis.
-8. Confirm the installed `/config/custom_components/govee_light_ble/manifest.json` version matches your selected beta tag.
+7. Verify Bluetooth discovery, manual entry, power on/off, all 22 H1167 modes (now labeled with the corresponding Govee app names), connection recovery, and adapter/proxy behavior on Jarvis.
+8. If upgrading from the numeric option labels, verify saved Show Mode selection is displayed under its new name and update automations/scripts that contain literal old option strings.
+9. Confirm the installed `/config/custom_components/govee_light_ble/manifest.json` version matches your selected beta tag.
 
 **Important:** Bluetooth on Jarvis's Docker container also requires functional BlueZ/D-Bus integration, the `/run/dbus:/run/dbus:ro` mount, and `NET_ADMIN` and `NET_RAW` capabilities for local adapter management. These must be fixed independently of the custom integration.
 

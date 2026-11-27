@@ -12,7 +12,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import GoveeCoordinator
-from .h1167_modes import H1167_MODE_OPTIONS
+from .h1167_modes import H1167_LEGACY_MODE_NAMES, H1167_MODE_OPTIONS
 
 
 async def async_setup_entry(
@@ -53,9 +53,14 @@ class GoveeH1167ModeSelect(CoordinatorEntity[GoveeCoordinator], SelectEntity, Re
         """Restore the last HA-selected mode without issuing BLE writes."""
         await super().async_added_to_hass()
         last_state = await self.async_get_last_state()
-        if last_state is not None and last_state.state in H1167_MODE_OPTIONS:
-            self._attr_current_option = last_state.state
-            self.async_write_ha_state()
+        if last_state is not None:
+            # Existing installations may have an old numbered mode saved.
+            restored_option = H1167_LEGACY_MODE_NAMES.get(
+                last_state.state, last_state.state
+            )
+            if restored_option in H1167_MODE_OPTIONS:
+                self._attr_current_option = restored_option
+                self.async_write_ha_state()
 
     async def async_select_option(self, option: str) -> None:
         """Send the recorded mode packet and then update dropdown state."""
